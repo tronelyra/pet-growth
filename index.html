@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>宠物成长记录 · 看着它一点点长大</title>
+<style>
+/* SECTION: design tokens */
+:root{
+  --bg:#fbf7f2;
+  --bg-2:#f4ece2;
+  --card:#fffdfa;
+  --ink:#3a2f28;
+  --ink-2:#7d6e62;
+  --ink-3:#a99a8c;
+  --line:#eadfd2;
+  --brand:#c8623a;
+  --brand-2:#e08a5c;
+  --brand-soft:#fbeee5;
+  --green:#5f8f5e;
+  --amber:#c99a2e;
+  --blue:#5a7fa8;
+  --shadow:0 1px 2px rgba(74,54,38,.05),0 8px 24px rgba(74,54,38,.06);
+  --r-lg:20px;
+  --r-md:14px;
+  --r-sm:10px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+img{display:block;max-width:100%}
+h1,h2,h3,h4{margin:0;font-weight:700;letter-spacing:-.01em}
+
+/* SECTION: layout shell */
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px 72px}
+.masthead{
+  display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;
+  padding:26px 0 18px;
+}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand-mark{
+  width:40px;height:40px;flex:0 0 40px;border-radius:13px;
+  background:linear-gradient(145deg,var(--brand),var(--brand-2));
+  display:grid;place-items:center;color:#fff;box-shadow:var(--shadow)
+}
+.brand-mark svg{width:22px;height:22px}
+.brand-txt h1{font-size:19px;line-height:1.25}
+.brand-txt p{margin:1px 0 0;font-size:12.5px;color:var(--ink-3)}
+
+/* SECTION: pet hero */
+.hero{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--shadow);padding:18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;
+}
+.hero-avatar{
+  width:84px;height:84px;flex:0 0 84px;border-radius:24px;overflow:hidden;
+  background:var(--brand-soft);display:grid;place-items:center;border:1px solid var(--line)
+}
+.hero-avatar img{width:100%;height:100%;object-fit:cover}
+.hero-avatar svg{width:38px;height:38px;color:var(--brand-2)}
+.hero-id{flex:1 1 210px;min-width:0}
+.hero-id h2{font-size:24px;line-height:1.2;word-break:break-word}
+.hero-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;background:var(--bg-2);color:var(--ink-2);
+  border-radius:999px;padding:4px 11px;font-size:12.5px;white-space:nowrap
+}
+.chip b{color:var(--ink);font-weight:600}
+.hero-age{text-align:right;flex:0 0 auto}
+.hero-age .big{font-size:26px;font-weight:700;color:var(--brand);line-height:1.1;letter-spacing:-.02em}
+.hero-age .lbl{font-size:12px;color:var(--ink-3)}
+.hero-edit{
+  align-self:flex-start;background:var(--bg-2);border-radius:var(--r-sm);padding:7px 13px;
+  font-size:13px;color:var(--ink-2)
+}
+.hero-edit:hover{background:var(--brand-soft);color:var(--brand)}
+
+/* SECTION: tabs */
+.tabs{
+  display:flex;gap:6px;margin:20px 0 18px;padding:5px;background:var(--bg-2);
+  border-radius:16px;overflow-x:auto;scrollbar-width:none
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:0 0 auto;padding:9px 16px;border-radius:12px;font-size:14.5px;color:var(--ink-2);
+  white-space:nowrap;transition:background .18s,color .18s
+}
+.tab[aria-selected="true"]{background:var(--card);color:var(--brand);font-weight:600;box-shadow:var(--shadow)}
+.panel[hidden]{display:none}
+.panel{animation:fade .22s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* SECTION: cards & stats */
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--shadow);padding:18px;margin-bottom:16px
+}
+.card-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.card-h h3{font-size:16.5px}
+.card-h .sub{font-size:12.5px;color:var(--ink-3)}
+.stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(148px,1fr))}
+.stat{background:var(--bg);border:1px solid var(--line);border-radius:var(--r-md);padding:14px}
+.stat .k{font-size:12px;color:var(--ink-3);letter-spacing:.02em}
+.stat .v{font-size:25px;font-weight:700;line-height:1.25;margin-top:3px;word-break:break-word}
+.stat .v small{font-size:13px;font-weight:600;color:var(--ink-2);margin-left:2px}
+.stat .d{font-size:12px;margin-top:2px;color:var(--ink-3)}
+.stat .d.up{color:var(--green)}
+.stat .d.down{color:var(--brand)}
+
+/* SECTION: forms */
+.form-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field > label{font-size:12.5px;color:var(--ink-2);font-weight:600}
+.field input,.field select,.field textarea{
+  width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:var(--r-sm);
+  background:var(--bg);outline:none;transition:border-color .16s,background .16s;min-width:0
+}
+.field textarea{resize:vertical;min-height:64px}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--brand-2);background:#fff}
+.field .unit{font-size:11.5px;color:var(--ink-3)}
+.form-foot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.btn{
+  padding:11px 20px;border-radius:var(--r-sm);font-size:14.5px;font-weight:600;
+  background:var(--brand);color:#fff;transition:filter .16s,transform .1s;min-height:44px
+}
+.btn:hover{filter:brightness(1.06)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:var(--bg-2);color:var(--ink-2)}
+.btn.line{background:transparent;color:var(--brand);border:1px solid var(--brand-2)}
+.btn.sm{padding:7px 13px;font-size:13px;min-height:36px}
+.btn.danger{background:transparent;color:#b4442c;border:1px solid #ecc9bf}
+
+/* photo picker */
+.photo-pick{
+  display:flex;align-items:center;gap:12px;background:var(--bg);border:1px dashed var(--line);
+  border-radius:var(--r-md);padding:11px;min-width:0
+}
+.photo-pick .pv{
+  width:54px;height:54px;flex:0 0 54px;border-radius:12px;background:var(--bg-2);
+  display:grid;place-items:center;overflow:hidden;color:var(--ink-3);font-size:11px
+}
+.photo-pick .pv img{width:100%;height:100%;object-fit:cover}
+.photo-pick .pv svg{width:20px;height:20px}
+.photo-pick .txt{font-size:12.5px;color:var(--ink-2);min-width:0}
+.photo-pick input[type=file]{display:none}
+.pick-btn{
+  background:var(--bg-2);color:var(--ink-2);border-radius:var(--r-sm);padding:8px 13px;
+  font-size:13px;flex:0 0 auto;min-height:38px
+}
+
+/* SECTION: record list */
+.rec-list{display:flex;flex-direction:column;gap:11px}
+.rec{
+  display:flex;gap:13px;align-items:center;padding:12px;border:1px solid var(--line);
+  border-radius:var(--r-md);background:var(--bg);flex-wrap:wrap
+}
+.rec-thumb{
+  width:58px;height:58px;flex:0 0 58px;border-radius:12px;overflow:hidden;background:var(--bg-2);
+  display:grid;place-items:center;color:var(--ink-3)
+}
+.rec-thumb img{width:100%;height:100%;object-fit:cover}
+.rec-thumb svg{width:20px;height:20px}
+.rec-main{flex:1 1 190px;min-width:0}
+.rec-date{font-size:13px;color:var(--ink-3);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.rec-date .tag{
+  background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:1px 8px;font-size:11px;font-weight:600
+}
+.rec-nums{display:flex;flex-wrap:wrap;gap:14px;margin-top:4px}
+.rec-num{font-size:14px;color:var(--ink);white-space:nowrap}
+.rec-num b{font-size:17px}
+.rec-num i{font-style:normal;font-size:11.5px;color:var(--ink-3);margin-left:1px}
+.rec-note{font-size:13px;color:var(--ink-2);margin-top:4px;word-break:break-word}
+.rec-ops{display:flex;gap:6px;flex:0 0 auto}
+.icon-btn{
+  width:34px;height:34px;border-radius:9px;background:var(--bg-2);color:var(--ink-2);
+  display:grid;place-items:center;transition:background .16s,color .16s
+}
+.icon-btn:hover{background:var(--brand-soft);color:var(--brand)}
+.icon-btn svg{width:16px;height:16px}
+
+/* SECTION: chart */
+.chart-switch{display:flex;gap:6px;flex-wrap:wrap}
+.seg{
+  padding:8px 15px;border-radius:999px;background:var(--bg-2);color:var(--ink-2);font-size:13.5px;
+  min-height:38px;transition:background .16s,color .16s
+}
+.seg[aria-pressed="true"]{background:var(--brand);color:#fff;font-weight:600}
+.chart-box{position:relative;width:100%}
+#chart{width:100%;height:auto;display:block;touch-action:none}
+.tip{
+  position:absolute;transform:translate(-50%,-118%);background:var(--ink);color:#fff;
+  border-radius:9px;padding:6px 10px;font-size:12.5px;line-height:1.45;pointer-events:none;
+  white-space:nowrap;opacity:0;transition:opacity .14s;z-index:3
+}
+.tip.on{opacity:1}
+.tip b{font-weight:600}
+.chart-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12.5px;color:var(--ink-2)}
+.chart-legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--brand);display:inline-block}
+
+/* SECTION: milestones */
+.timeline{position:relative;padding-left:24px}
+.timeline::before{
+  content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;
+  background:linear-gradient(var(--line),var(--bg-2))
+}
+.ms{position:relative;padding:0 0 18px}
+.ms:last-child{padding-bottom:0}
+.ms::before{
+  content:"";position:absolute;left:-24px;top:5px;width:14px;height:14px;border-radius:50%;
+  background:var(--card);border:3px solid var(--brand-2)
+}
+.ms-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ms-type{
+  font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 10px;background:var(--brand-soft);color:var(--brand)
+}
+.ms-date{font-size:12.5px;color:var(--ink-3)}
+.ms-title{font-size:15px;font-weight:600;margin-top:2px;word-break:break-word}
+.ms-note{font-size:13px;color:var(--ink-2);margin-top:2px;word-break:break-word}
+
+/* SECTION: gallery */
+.gal{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(158px,1fr))}
+.gal-item{
+  position:relative;border-radius:var(--r-md);overflow:hidden;background:var(--bg-2);
+  border:1px solid var(--line);aspect-ratio:1/1;cursor:zoom-in
+}
+.gal-item img{width:100%;height:100%;object-fit:cover}
+.gal-cap{
+  position:absolute;left:0;right:0;bottom:0;padding:22px 10px 9px;font-size:12px;color:#fff;
+  background:linear-gradient(transparent,rgba(40,28,20,.78));display:flex;justify-content:space-between;gap:8px
+}
+.gal-cap i{font-style:normal;opacity:.86}
+.gal-empty-note{font-size:13px;color:var(--ink-3);margin-top:10px}
+
+/* lightbox */
+.lb{
+  position:fixed;inset:0;background:rgba(32,22,16,.9);display:none;place-items:center;
+  z-index:60;padding:22px
+}
+.lb.on{display:grid}
+.lb img{max-width:100%;max-height:82vh;border-radius:var(--r-md);object-fit:contain}
+.lb .lb-cap{color:#fff;font-size:13.5px;margin-top:12px;text-align:center}
+.lb-close{
+  position:absolute;top:16px;right:18px;width:40px;height:40px;border-radius:50%;
+  background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center;font-size:20px
+}
+
+/* SECTION: data tab */
+.data-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.note{
+  font-size:13px;color:var(--ink-2);background:var(--bg-2);border-radius:var(--r-md);padding:12px 14px;
+  border-left:3px solid var(--brand-2)
+}
+.note strong{color:var(--ink)}
+.file-in{display:none}
+
+/* SECTION: misc (empty / toast / modal) */
+.empty{text-align:center;padding:34px 16px;color:var(--ink-3)}
+.empty svg{width:40px;height:40px;margin-bottom:8px;color:var(--line)}
+.empty p{margin:0 0 12px;font-size:14px}
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,18px);background:var(--ink);color:#fff;
+  padding:11px 18px;border-radius:999px;font-size:13.5px;opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s;z-index:80;max-width:88vw;text-align:center
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.modal{
+  position:fixed;inset:0;background:rgba(32,22,16,.5);display:none;place-items:center;z-index:70;padding:18px
+}
+.modal.on{display:grid}
+.modal-card{
+  background:var(--card);border-radius:var(--r-lg);padding:20px;width:100%;max-width:460px;
+  max-height:88vh;overflow:auto;box-shadow:0 18px 50px rgba(40,28,20,.22)
+}
+.modal-card h3{font-size:17px;margin-bottom:14px}
+.sec-title{font-size:13px;color:var(--ink-3);margin:2px 0 12px;font-weight:600;letter-spacing:.03em}
+footer{margin-top:26px;text-align:center;font-size:12px;color:var(--ink-3);line-height:1.7}
+
+@media (max-width:640px){
+  .wrap{padding:0 12px 56px}
+  .hero{padding:15px;gap:13px}
+  .hero-avatar{width:66px;height:66px;flex:0 0 66px;border-radius:19px}
+  .hero-id h2{font-size:21px}
+  .hero-age{flex:1 1 100%;text-align:left}
+  .card{padding:15px}
+  .rec{padding:11px}
+  .gal{grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:9px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- SECTION: masthead -->
+  <header class="masthead">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="7" cy="8" r="2.2"/><circle cx="12.6" cy="6.2" r="2.2"/><circle cx="18" cy="8.4" r="2.2"/><circle cx="20" cy="14" r="1.9"/><path d="M12.4 10.2c3.1 0 5.4 2.5 5.4 5 0 2-1.6 3.2-3.6 3.2-.9 0-1.4-.3-2.3-.3s-1.4.3-2.3.3c-2 0-3.6-1.2-3.6-3.2 0-2.5 2.3-5 5-5z"/></svg>
+      </div>
+      <div class="brand-txt">
+        <h1>宠物成长记录</h1>
+        <p>体重 · 尺寸 · 里程碑 · 照片，一条时间线全记下</p>
+      </div>
+    </div>
+    <button class="hero-edit" id="editPetBtn" type="button">编辑档案</button>
+  </header>
+
+  <!-- SECTION: pet hero -->
+  <section class="hero" id="hero" aria-label="宠物档案"></section>
+
+  <!-- SECTION: tabs -->
+  <nav class="tabs" role="tablist" aria-label="功能分区">
+    <button class="tab" role="tab" data-tab="overview" aria-selected="true" type="button">概览</button>
+    <button class="tab" role="tab" data-tab="records" aria-selected="false" type="button">生长记录</button>
+    <button class="tab" role="tab" data-tab="chart" aria-selected="false" type="button">成长曲线</button>
+    <button class="tab" role="tab" data-tab="milestones" aria-selected="false" type="button">里程碑</button>
+    <button class="tab" role="tab" data-tab="gallery" aria-selected="false" type="button">照片墙</button>
+    <button class="tab" role="tab" data-tab="data" aria-selected="false" type="button">数据</button>
+  </nav>
+
+  <!-- SECTION: panel overview -->
+  <section class="panel" id="panel-overview" role="tabpanel">
+    <div class="card">
+      <div class="card-h">
+        <h3>现在的它</h3>
+        <span class="sub" id="ovAgeLine"></span>
+      </div>
+      <div class="stats" id="ovStats"></div>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <h3>最近三次测量</h3>
+        <button class="btn sm line" type="button" data-goto="records">＋ 记一笔</button>
+      </div>
+      <div class="rec-list" id="ovRecent"></div>
+    </div>
+  </section>
+
+  <!-- SECTION: panel records -->
+  <section class="panel" id="panel-records" role="tabpanel" hidden>
+    <div class="card">
+      <div class="card-h"><h3 id="recFormTitle">新增一条生长记录</h3><span class="sub">体重单位 kg，身长与肩高单位 cm</span></div>
+      <form id="recForm" autocomplete="off">
+        <div class="form-grid">
+          <div class="field">
+            <label for="recDate">测量日期</label>
+            <input type="date" id="recDate" required>
+          </div>
+          <div class="field">
+            <label for="recWeight">体重（kg）</label>
+            <input type="number" id="recWeight" step="0.01" min="0" inputmode="decimal" placeholder="3.25">
+          </div>
+          <div class="field">
+            <label for="recLength">身长（cm）</label>
+            <input type="number" id="recLength" step="0.1" min="0" inputmode="decimal" placeholder="42">
+          </div>
+          <div class="field">
+            <label for="recHeight">肩高（cm）</label>
+            <input type="number" id="recHeight" step="0.1" min="0" inputmode="decimal" placeholder="28">
+          </div>
+        </div>
+        <div class="field" style="margin-top:12px">
+          <label for="recNote">备注</label>
+          <textarea id="recNote" placeholder="今天胃口不错，刚洗完澡毛蓬松显大…"></textarea>
+        </div>
+        <div class="field" style="margin-top:12px">
+          <label>当场照片（可选，会自动压缩）</label>
+          <label class="photo-pick" for="recPhoto">
+            <span class="pv" id="recPhotoPv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.6-2h4.8L16 6"/></svg></span>
+            <span class="txt" id="recPhotoTxt">点击选择照片</span>
+            <span class="pick-btn">选图</span>
+            <input type="file" id="recPhoto" accept="image/*">
+          </label>
+        </div>
+        <div class="form-foot">
+          <button class="btn" type="submit" id="recSubmit">保存记录</button>
+          <button class="btn ghost" type="button" id="recCancel" hidden>取消编辑</button>
+          <span class="unit" id="recHint"></span>
+        </div>
+      </form>
+    </div>
+    <div class="card">
+      <div class="card-h"><h3>全部记录</h3><span class="sub" id="recCount"></span></div>
+      <div class="rec-list" id="recList"></div>
+    </div>
+  </section>
+
+  <!-- SECTION: panel chart -->
+  <section class="panel" id="panel-chart" role="tabpanel" hidden>
+    <div class="card">
+      <div class="card-h">
+        <h3>成长曲线</h3>
+        <div class="chart-switch" id="metricSwitch">
+          <button class="seg" type="button" data-metric="weight" aria-pressed="true">体重</button>
+          <button class="seg" type="button" data-metric="length" aria-pressed="false">身长</button>
+          <button class="seg" type="button" data-metric="height" aria-pressed="false">肩高</button>
+        </div>
+      </div>
+      <div class="chart-box">
+        <canvas id="chart" width="960" height="440" role="img" aria-label="生长指标随时间变化的折线图"></canvas>
+        <div class="tip" id="chartTip"></div>
+      </div>
+      <div class="chart-legend" id="chartLegend"></div>
+      <p class="gal-empty-note">在手机上直接点按曲线上的点可以查看具体数值；数据点少于两个时只显示散点。</p>
+    </div>
+  </section>
+
+  <!-- SECTION: panel milestones -->
+  <section class="panel" id="panel-milestones" role="tabpanel" hidden>
+    <div class="card">
+      <div class="card-h"><h3>记一个里程碑</h3><span class="sub">疫苗、驱虫、绝育、第一次…</span></div>
+      <form id="msForm" autocomplete="off">
+        <div class="form-grid">
+          <div class="field">
+            <label for="msDate">日期</label>
+            <input type="date" id="msDate" required>
+          </div>
+          <div class="field">
+            <label for="msType">类别</label>
+            <select id="msType">
+              <option>疫苗</option><option>驱虫</option><option>体检</option>
+              <option>绝育</option><option>换牙</option><option>洗澡美容</option>
+              <option>新技能</option><option>第一次</option><option>其他</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:1/-1">
+            <label for="msTitle">事件</label>
+            <input type="text" id="msTitle" maxlength="60" placeholder="第三针疫苗 / 第一次会握手" required>
+          </div>
+          <div class="field" style="grid-column:1/-1">
+            <label for="msNote">备注（可选）</label>
+            <textarea id="msNote" placeholder="医院：xx宠物医院，下次加强日期：…" style="min-height:52px"></textarea>
+          </div>
+        </div>
+        <div class="form-foot"><button class="btn" type="submit">添加里程碑</button></div>
+      </form>
+    </div>
+    <div class="card">
+      <div class="card-h"><h3>时间线</h3><span class="sub" id="msCount"></span></div>
+      <div class="timeline" id="msList"></div>
+    </div>
+  </section>
+
+  <!-- SECTION: panel gallery -->
+  <section class="panel" id="panel-gallery" role="tabpanel" hidden>
+    <div class="card">
+      <div class="card-h"><h3>照片墙</h3><span class="sub" id="galCount"></span></div>
+      <div class="gal" id="galGrid"></div>
+      <p class="gal-empty-note">照片来自每条生长记录，按日期排列。对比第一张和最后一张，变化最直观。</p>
+    </div>
+  </section>
+
+  <!-- SECTION: panel data -->
+  <section class="panel" id="panel-data" role="tabpanel" hidden>
+    <div class="card">
+      <div class="card-h"><h3>备份与迁移</h3></div>
+      <p class="note" style="margin-bottom:14px">
+        这是纯静态网页，<strong>所有数据只存在这台设备当前的浏览器里</strong>，不会上传到 GitHub 或任何服务器。
+        换手机、换浏览器或清理浏览器数据前，请先导出备份，到新环境再导入。
+      </p>
+      <div class="data-row">
+        <button class="btn" type="button" id="exportBtn">导出 JSON 备份</button>
+        <button class="btn line" type="button" id="importBtn">导入备份</button>
+        <input type="file" class="file-in" id="importFile" accept="application/json,.json">
+        <button class="btn ghost" type="button" id="demoBtn">载入示例数据</button>
+        <button class="btn danger" type="button" id="clearBtn">清空全部数据</button>
+      </div>
+      <p class="gal-empty-note" id="storageInfo"></p>
+    </div>
+    <div class="card">
+      <div class="card-h"><h3>记录建议</h3></div>
+      <p class="note">
+        幼宠建议<strong>每周</strong>固定同一天、同一台秤称一次，测量条件一致曲线才有可比性；
+        成年后改为<strong>每月</strong>一次即可。身长量鼻端到尾根，肩高量地面到肩胛骨最高点。
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    数据保存在本地浏览器 · 页面本身可直接部署到 GitHub Pages<br>
+    建议把导出的 JSON 一并提交到私有仓库或网盘，作为长期存档
+  </footer>
+</div>
+
+<!-- SECTION: pet modal -->
+<div class="modal" id="petModal" role="dialog" aria-modal="true" aria-labelledby="petModalTitle">
+  <div class="modal-card">
+    <h3 id="petModalTitle">宠物档案</h3>
+    <form id="petForm" autocomplete="off">
+      <div class="form-grid">
+        <div class="field" style="grid-column:1/-1">
+          <label for="petName">名字</label>
+          <input type="text" id="petName" maxlength="24" placeholder="奶糖" required>
+        </div>
+        <div class="field">
+          <label for="petBreed">品种</label>
+          <input type="text" id="petBreed" maxlength="30" placeholder="柯基 / 英短">
+        </div>
+        <div class="field">
+          <label for="petGender">性别</label>
+          <select id="petGender"><option>弟弟</option><option>妹妹</option><option>未定</option></select>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label for="petBirthday">出生日期 / 到家日期</label>
+          <input type="date" id="petBirthday">
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>头像（可选）</label>
+          <label class="photo-pick" for="petAvatar">
+            <span class="pv" id="avatarPv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.6-2h4.8L16 6"/></svg></span>
+            <span class="txt" id="avatarTxt">点击选择头像</span>
+            <span class="pick-btn">选图</span>
+            <input type="file" class="file-in" id="petAvatar" accept="image/*">
+          </label>
+        </div>
+      </div>
+      <div class="form-foot">
+        <button class="btn" type="submit">保存档案</button>
+        <button class="btn ghost" type="button" id="petCancel">取消</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- SECTION: lightbox -->
+<div class="lb" id="lightbox" role="dialog" aria-label="照片查看">
+  <button class="lb-close" id="lbClose" type="button" aria-label="关闭">×</button>
+  <div>
+    <img id="lbImg" alt="成长照片">
+    <div class="lb-cap" id="lbCap"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* SECTION: state */
+"use strict";
+const KEY = "petGrowth.v1";
+const METRICS = {
+  weight:{label:"体重",unit:"kg",color:"#c8623a"},
+  length:{label:"身长",unit:"cm",color:"#5a7fa8"},
+  height:{label:"肩高",unit:"cm",color:"#5f8f5e"}
+};
+const $ = (id)=>document.getElementById(id);
+let state = load();
+let editingId = null;
+let curMetric = "weight";
+let formPhoto = null;
+let avatarPhoto = null;
+let chartPts = [];
+
+function blank(){ return {pet:{name:"",breed:"",gender:"弟弟",birthday:"",avatar:""},records:[],milestones:[]}; }
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(!raw) return blank();
+    const d = JSON.parse(raw);
+    return {
+      pet: Object.assign(blank().pet, d.pet||{}),
+      records: Array.isArray(d.records)?d.records.map(normRec):[],
+      milestones: Array.isArray(d.milestones)?d.milestones.map(normMs):[]
+    };
+  }catch(e){ return blank(); }
+}
+function save(){
+  try{
+    localStorage.setItem(KEY, JSON.stringify(state));
+    return true;
+  }catch(e){
+    toast("保存失败：浏览器存储空间已满，请先导出备份并删除部分照片");
+    return false;
+  }
+}
+function normRec(r){
+  return {
+    id: r.id || uid(),
+    date: /^\d{4}-\d{2}-\d{2}$/.test(r.date||"") ? r.date : today(),
+    weight: num(r.weight), length: num(r.length), height: num(r.height),
+    note: String(r.note||"").slice(0,300),
+    photo: typeof r.photo === "string" && r.photo.startsWith("data:image") ? r.photo : ""
+  };
+}
+function normMs(m){
+  return {
+    id: m.id || uid(),
+    date: /^\d{4}-\d{2}-\d{2}$/.test(m.date||"") ? m.date : today(),
+    type: String(m.type||"其他").slice(0,12),
+    title: String(m.title||"").slice(0,60),
+    note: String(m.note||"").slice(0,300)
+  };
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function num(v){ const n = parseFloat(v); return Number.isFinite(n)&&n>0 ? n : null; }
+function today(){ const d=new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; }
+function p2(n){ return String(n).padStart(2,"0"); }
+function fmtDate(s){ const [y,m,d]=s.split("-"); return `${y}年${+m}月${+d}日`; }
+function shortDate(s){ const [,m,d]=s.split("-"); return `${+m}/${+d}`; }
+function byDateDesc(a,b){ return a.date<b.date?1:a.date>b.date?-1:0; }
+
+/* age from birthday */
+function ageText(bd){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(bd||"")) return null;
+  const b = new Date(bd+"T00:00:00"), n = new Date();
+  if(isNaN(b) || b>n) return null;
+  let y=n.getFullYear()-b.getFullYear(), mo=n.getMonth()-b.getMonth(), d=n.getDate()-b.getDate();
+  if(d<0){ mo--; d += new Date(n.getFullYear(),n.getMonth(),0).getDate(); }
+  if(mo<0){ y--; mo+=12; }
+  const parts=[]; if(y)parts.push(y+"岁"); if(mo)parts.push(mo+"个月");
+  if(!parts.length) parts.push(d+"天"); else if(d) parts.push(d+"天");
+  const days=Math.round((n-b)/86400000);
+  return {str:parts.join(" "), days};
+}
+
+/* SECTION: toast */
+let toastTimer=null;
+function toast(msg){
+  const t=$("toast"); t.textContent=msg; t.classList.add("on");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("on"),2600);
+}
+
+/* SECTION: icons */
+const ICO = {
+  paw:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="7" cy="8" r="2.2"/><circle cx="12.6" cy="6.2" r="2.2"/><circle cx="18" cy="8.4" r="2.2"/><path d="M12.4 10.2c3.1 0 5.4 2.5 5.4 5 0 2-1.6 3.2-3.6 3.2-.9 0-1.4-.3-2.3-.3s-1.4.3-2.3.3c-2 0-3.6-1.2-3.6-3.2 0-2.5 2.3-5 5-5z"/></svg>',
+  pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h4L20 8l-4-4L4 16z"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+  cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.6-2h4.8L16 6"/></svg>'
+};
+
+/* SECTION: render hero */
+function renderHero(){
+  const el=$("hero");
+  el.innerHTML = `
+    <div class="hero-avatar" id="heroAvatar"></div>
+    <div class="hero-id">
+      <h2 data-role="name"></h2>
+      <div class="hero-meta" data-role="meta"></div>
+    </div>
+    <div class="hero-age">
+      <div class="big" data-role="age"></div>
+      <div class="lbl" data-role="agelbl"></div>
+    </div>`;
+  const av=$("heroAvatar");
+  if(state.pet.avatar){
+    const img=document.createElement("img"); img.alt="宠物头像"; img.src=state.pet.avatar; av.appendChild(img);
+  }else{
+    const s=document.createElement("span"); s.innerHTML=ICO.paw; s.style.color="var(--brand-2)"; av.appendChild(s);
+  }
+  el.querySelector('[data-role="name"]').textContent = state.pet.name || "还没有名字";
+  const meta=el.querySelector('[data-role="meta"]');
+  const chips=[];
+  if(state.pet.breed) chips.push(["品种",state.pet.breed]);
+  if(state.pet.gender && state.pet.gender!=="未定") chips.push(["性别",state.pet.gender]);
+  if(state.pet.birthday) chips.push(["出生日期",fmtDate(state.pet.birthday)]);
+  chips.forEach(([k,v])=>{
+    const c=document.createElement("span"); c.className="chip";
+    c.textContent=k+" ";
+    const b=document.createElement("b"); b.textContent=v; c.appendChild(b);
+    meta.appendChild(c);
+  });
+  const a=ageText(state.pet.birthday);
+  el.querySelector('[data-role="age"]').textContent = a ? a.str : "待填生日";
+  el.querySelector('[data-role="agelbl"]').textContent = a ? ("已陪伴 "+a.days+" 天") : "在档案里填出生日期后可自动算年龄";
+}
+
+/* SECTION: render overview */
+function renderOverview(){
+  const recs = state.records.slice().sort(byDateDesc);
+  const a = ageText(state.pet.birthday);
+  $("ovAgeLine").textContent = a ? `出生第 ${a.days} 天` : "";
+  const box=$("ovStats"); box.innerHTML="";
+
+  const last = recs[0], prev = recs[1];
+  const delta = (last&&prev&&last.weight&&prev.weight) ? (last.weight-prev.weight) : null;
+  const first = recs[recs.length-1];
+  const total = (last&&first&&last.weight&&first.weight&&last!==first) ? (last.weight-first.weight) : null;
+
+  const items=[
+    {k:"最新体重", v: last&&last.weight!=null?last.weight.toFixed(2):"—", u:"kg",
+     d: delta!=null ? (`${delta>0?"+":""}${delta.toFixed(2)} kg 较上次`) : "需两次记录才显示变化",
+     cls: delta==null?"":(delta>=0?"up":"down")},
+    {k:"距上次测量", v: last ? String(Math.max(0,Math.round((new Date()-new Date(last.date+"T00:00:00"))/86400000))) : "—", u:"天",
+     d: last ? ("上次 "+fmtDate(last.date)) : "还没有测量记录"},
+    {k:"生长记录数", v:String(state.records.length), u:"条", d: total!=null?(`累计 ${total>0?"+":""}${total.toFixed(2)} kg`):"总体重变化待积累"},
+    {k:"里程碑", v:String(state.milestones.length), u:"个", d: state.milestones.length ? ("最近 "+nearestMs()) : "记下疫苗、驱虫等事件"}
+  ];
+  items.forEach(it=>{
+    const c=document.createElement("div"); c.className="stat";
+    const k=document.createElement("div"); k.className="k"; k.textContent=it.k;
+    const v=document.createElement("div"); v.className="v"; v.textContent=it.v;
+    if(it.u){ const s=document.createElement("small"); s.textContent=it.u; v.appendChild(s); }
+    const d=document.createElement("div"); d.className="d "+(it.cls||""); d.textContent=it.d;
+    c.append(k,v,d); box.appendChild(c);
+  });
+
+  const rl=$("ovRecent"); rl.innerHTML="";
+  if(!recs.length){ rl.appendChild(emptyBlock("还没有生长记录","称一次体重，开始第一笔记录","去记一笔","records")); return; }
+  recs.slice(0,3).forEach(r=>rl.appendChild(recNode(r)));
+}
+function nearestMs(){
+  const list=state.milestones.slice().sort(byDateDesc);
+  return list.length?fmtDate(list[0].date):"—";
+}
+function emptyBlock(title,desc,btnTxt,goto){
+  const d=document.createElement("div"); d.className="empty";
+  const s=document.createElement("span"); s.innerHTML=ICO.cam; d.appendChild(s);
+  const p=document.createElement("p"); p.textContent=title+" · "+desc; d.appendChild(p);
+  if(btnTxt){
+    const b=document.createElement("button"); b.className="btn line sm"; b.type="button"; b.textContent=btnTxt;
+    b.addEventListener("click",()=>switchTab(goto)); d.appendChild(b);
+  }
+  return d;
+}
+
+/* SECTION: render record node */
+function recNode(r){
+  const el=document.createElement("article"); el.className="rec";
+  el.innerHTML = `
+    <div class="rec-thumb" data-role="thumb"></div>
+    <div class="rec-main">
+      <div class="rec-date"><span data-role="date"></span><span class="tag" data-role="tag" hidden></span></div>
+      <div class="rec-nums" data-role="nums"></div>
+      <div class="rec-note" data-role="note" hidden></div>
+    </div>
+    <div class="rec-ops">
+      <button class="icon-btn" type="button" data-op="edit" aria-label="编辑">${ICO.pen}</button>
+      <button class="icon-btn" type="button" data-op="del" aria-label="删除">${ICO.trash}</button>
+    </div>`;
+  const thumb=el.querySelector('[data-role="thumb"]');
+  if(r.photo){ const i=document.createElement("img"); i.alt="成长照片"; i.src=r.photo; thumb.appendChild(i); }
+  else{ const s=document.createElement("span"); s.innerHTML=ICO.paw; s.style.color="var(--line)"; thumb.appendChild(s); }
+  el.querySelector('[data-role="date"]').textContent=fmtDate(r.date);
+  const a=ageText(r.date ? state.pet.birthday : "");
+  const tag=el.querySelector('[data-role="tag"]');
+  if(a && state.pet.birthday){
+    const b=new Date(state.pet.birthday+"T00:00:00"), c=new Date(r.date+"T00:00:00");
+    if(c>=b) tag.textContent="第 "+Math.round((c-b)/86400000)+" 天", tag.hidden=false;
+  }
+  const nums=el.querySelector('[data-role="nums"]');
+  [["体重",r.weight,"kg"],["身长",r.length,"cm"],["肩高",r.height,"cm"]].forEach(([k,v,u])=>{
+    if(v==null) return;
+    const s=document.createElement("span"); s.className="rec-num";
+    s.textContent=k+" ";
+    const b=document.createElement("b"); b.textContent=String(v); s.appendChild(b);
+    const i=document.createElement("i"); i.textContent=u; s.appendChild(i);
+    nums.appendChild(s);
+  });
+  if(!nums.children.length){
+    const s=document.createElement("span"); s.className="rec-num"; s.textContent="仅文字记录"; nums.appendChild(s);
+  }
+  const note=el.querySelector('[data-role="note"]');
+  if(r.note){ note.textContent=r.note; note.hidden=false; }
+  el.querySelector('[data-op="edit"]').addEventListener("click",()=>startEdit(r.id));
+  el.querySelector('[data-op="del"]').addEventListener("click",()=>{
+    if(!confirm("删除 "+fmtDate(r.date)+" 这条记录？该条照片会一并删除。")) return;
+    state.records=state.records.filter(x=>x.id!==r.id);
+    if(editingId===r.id) cancelEdit();
+    save(); renderAll(); toast("已删除");
+  });
+  return el;
+}
+
+/* SECTION: render records list */
+function renderRecords(){
+  const list=state.records.slice().sort(byDateDesc);
+  $("recCount").textContent = list.length ? ("共 "+list.length+" 条") : "";
+  const box=$("recList"); box.innerHTML="";
+  if(!list.length){ box.appendChild(emptyBlock("还没有记录","填完上面的表单就能生成第一条","","")); return; }
+  list.forEach(r=>box.appendChild(recNode(r)));
+}
+
+/* SECTION: chart */
+function chartData(){
+  return state.records.slice().sort((a,b)=>a.date<b.date?-1:1)
+    .map(r=>({t:new Date(r.date+"T00:00:00").getTime(), v:r[curMetric], date:r.date}))
+    .filter(p=>p.v!=null && !isNaN(p.t));
+}
+function drawChart(){
+  const cv=$("chart"), tip=$("chartTip"), lg=$("chartLegend");
+  const M=METRICS[curMetric];
+  const pts=chartData();
+  const cssW=cv.clientWidth||cv.parentNode.clientWidth||900;
+  const cssH=Math.max(240,Math.min(380,Math.round(cssW*0.48)));
+  const dpr=Math.max(1,Math.min(window.devicePixelRatio||1,3));
+  cv.width=Math.round(cssW*dpr); cv.height=Math.round(cssH*dpr);
+  cv.style.height=cssH+"px";
+  const x=cv.getContext("2d");
+  x.setTransform(dpr,0,0,dpr,0,0);
+  x.clearRect(0,0,cssW,cssH);
+  chartPts=[];
+
+  lg.innerHTML="";
+  if(pts.length<1){
+    x.fillStyle="#a99a8c"; x.font="14px sans-serif"; x.textAlign="center";
+    x.fillText("还没有 "+M.label+" 数据，先去「生长记录」添加", cssW/2, cssH/2);
+    const s=document.createElement("span"); s.textContent="至少录入一次测量后，这里会出现曲线"; lg.appendChild(s);
+    return;
+  }
+  const padL=52, padR=16, padT=16, padB=34;
+  const vals=pts.map(p=>p.v);
+  let lo=Math.min(...vals), hi=Math.max(...vals);
+  if(lo===hi){ lo=lo*0.92-0.2; hi=hi*1.08+0.2; }
+  else{ const gap=hi-lo; lo=Math.max(0,lo-gap*0.18); hi=hi+gap*0.18; }
+  const t0=pts[0].t, t1=pts[pts.length-1].t;
+  const span=(t1-t0)||1;
+  const PX=(t)=>padL+(cssW-padL-padR)*((t-t0)/span);
+  const PY=(v)=>cssH-padB-(cssH-padT-padB)*((v-lo)/(hi-lo));
+
+  x.strokeStyle="#eadfd2"; x.lineWidth=1; x.fillStyle="#a99a8c";
+  x.font="11px sans-serif"; x.textAlign="right"; x.textBaseline="middle";
+  const rows=4;
+  for(let i=0;i<=rows;i++){
+    const vv=lo+(hi-lo)*i/rows, yy=PY(vv);
+    x.beginPath(); x.moveTo(padL,yy); x.lineTo(cssW-padR,yy); x.stroke();
+    x.fillText(vv.toFixed(hi-lo<5?1:0), padL-8, yy);
+  }
+  x.textAlign="center"; x.textBaseline="top";
+  const cols=Math.min(pts.length,6);
+  for(let i=0;i<cols;i++){
+    const idx=cols===1?0:Math.round(i*(pts.length-1)/(cols-1));
+    x.fillText(shortDate(pts[idx].date), PX(pts[idx].t), cssH-padB+8);
+  }
+
+  if(pts.length>1){
+    x.beginPath();
+    pts.forEach((p,i)=>{ const xx=PX(p.t), yy=PY(p.v); i?x.lineTo(xx,yy):x.moveTo(xx,yy); });
+    x.strokeStyle=M.color; x.lineWidth=2.4; x.lineJoin="round"; x.stroke();
+    x.lineTo(PX(pts[pts.length-1].t),cssH-padB); x.lineTo(PX(pts[0].t),cssH-padB); x.closePath();
+    const g=x.createLinearGradient(0,padT,0,cssH-padB);
+    g.addColorStop(0,M.color+"2e"); g.addColorStop(1,M.color+"00");
+    x.fillStyle=g; x.fill();
+  }
+  pts.forEach(p=>{
+    const xx=PX(p.t), yy=PY(p.v);
+    x.beginPath(); x.arc(xx,yy,4.6,0,Math.PI*2);
+    x.fillStyle="#fffdfa"; x.fill(); x.lineWidth=2.4; x.strokeStyle=M.color; x.stroke();
+    chartPts.push({x:xx,y:yy,p});
+  });
+
+  const a=document.createElement("span");
+  const d1=document.createElement("span"); a.innerHTML='<span class="dot"></span>'; a.querySelector(".dot").style.background=M.color;
+  a.append(curMetric==="weight"?M.label+"（kg）":M.label+"（cm）");
+  lg.appendChild(a);
+  const b=document.createElement("span"); b.textContent="数据点 "+pts.length+" 个"; lg.appendChild(b);
+  const c=document.createElement("span");
+  const chg=vals.length>1?(vals[vals.length-1]-vals[0]):0;
+  c.textContent = vals.length>1 ? (`首末变化 ${chg>0?"+":""}${chg.toFixed(2)} ${M.unit}`) : `当前 ${vals[0].toFixed(2)} ${M.unit}`;
+  lg.appendChild(c);
+}
+function tipAt(cx,cy){
+  const tip=$("chartTip");
+  if(!chartPts.length){ tip.classList.remove("on"); return; }
+  const M=METRICS[curMetric];
+  let best=null,bd=1e9;
+  chartPts.forEach(q=>{ const d=(q.x-cx)**2+(q.y-cy)**2; if(d<bd){bd=d;best=q;} });
+  if(bd>34**2){ tip.classList.remove("on"); return; }
+  tip.innerHTML="";
+  const l1=document.createElement("div"); l1.textContent=fmtDate(best.p.date);
+  const l2=document.createElement("div"); const b=document.createElement("b");
+  b.textContent=best.p.v+" "+M.unit; l2.append(M.label+" ",b);
+  tip.append(l1,l2);
+  tip.style.left=best.x+"px"; tip.style.top=best.y+"px"; tip.classList.add("on");
+}
+function bindChartPointer(){
+  const cv=$("chart");
+  const pos=(e)=>{ const r=cv.getBoundingClientRect(); return [e.clientX-r.left,e.clientY-r.top]; };
+  cv.addEventListener("pointermove",(e)=>{ const [x,y]=pos(e); tipAt(x,y); });
+  cv.addEventListener("pointerdown",(e)=>{ const [x,y]=pos(e); tipAt(x,y); });
+  cv.addEventListener("pointerleave",()=>$("chartTip").classList.remove("on"));
+}
+
+/* SECTION: milestones */
+function renderMs(){
+  $("msCount").textContent = state.milestones.length ? ("共 "+state.milestones.length+" 个") : "";
+  const box=$("msList"); box.innerHTML="";
+  if(!state.milestones.length){
+    box.style.paddingLeft="0";
+    box.appendChild(emptyBlock("还没有里程碑","打个疫苗、驱个虫，都值得记下来","",""));
+    return;
+  }
+  box.style.paddingLeft="";
+  state.milestones.slice().sort(byDateDesc).forEach(m=>{
+    const el=document.createElement("div"); el.className="ms";
+    el.innerHTML=`
+      <div class="ms-head"><span class="ms-type"></span><span class="ms-date"></span></div>
+      <div class="ms-title"></div>
+      <div class="ms-note" hidden></div>`;
+    el.querySelector(".ms-type").textContent=m.type;
+    el.querySelector(".ms-date").textContent=fmtDate(m.date);
+    el.querySelector(".ms-title").textContent=m.title||"（未填写事件）";
+    if(m.note){ const n=el.querySelector(".ms-note"); n.textContent=m.note; n.hidden=false; }
+    const ops=document.createElement("div"); ops.className="rec-ops";
+    const del=document.createElement("button"); del.className="icon-btn"; del.type="button";
+    del.setAttribute("aria-label","删除里程碑"); del.innerHTML=ICO.trash;
+    del.addEventListener("click",()=>{
+      if(!confirm("删除里程碑「"+(m.title||m.type)+"」？")) return;
+      state.milestones=state.milestones.filter(x=>x.id!==m.id); save(); renderAll(); toast("已删除");
+    });
+    ops.appendChild(del); el.appendChild(ops);
+    box.appendChild(el);
+  });
+}
+
+/* SECTION: gallery */
+function renderGallery(){
+  const shots=state.records.filter(r=>r.photo).sort((a,b)=>a.date<b.date?-1:1);
+  $("galCount").textContent = shots.length ? (shots.length+" 张照片") : "";
+  const box=$("galGrid"); box.innerHTML="";
+  if(!shots.length){ box.appendChild(emptyBlock("还没有照片","在生长记录里附上当场照片，这里会自动汇集","","")); return; }
+  shots.forEach((r,i)=>{
+    const el=document.createElement("button"); el.type="button"; el.className="gal-item";
+    el.innerHTML=`<img alt="成长照片"><div class="gal-cap"><span data-role="d"></span><i data-role="w"></i></div>`;
+    el.querySelector("img").src=r.photo;
+    el.querySelector('[data-role="d"]').textContent=shortDate(r.date);
+    el.querySelector('[data-role="w"]').textContent = r.weight!=null?(r.weight+"kg"):(i===0?"最初":"");
+    el.addEventListener("click",()=>openLb(r));
+    box.appendChild(el);
+  });
+}
+function openLb(r){
+  const a=ageText(state.pet.birthday);
+  $("lbImg").src=r.photo;
+  const b=new Date(state.pet.birthday+"T00:00:00"), c=new Date(r.date+"T00:00:00");
+  const extra = state.pet.birthday && !isNaN(b) && c>=b ? (" · 出生第 "+Math.round((c-b)/86400000)+" 天") : "";
+  $("lbCap").textContent = fmtDate(r.date)+extra+(r.weight!=null?(" · "+r.weight+" kg"):"");
+  $("lightbox").classList.add("on");
+}
+
+/* SECTION: photo compress */
+function compress(file,maxSide,quality){
+  return new Promise((res,rej)=>{
+    if(!file || !/^image\//.test(file.type)) return rej(new Error("不是图片文件"));
+    const fr=new FileReader();
+    fr.onerror=()=>rej(new Error("读取失败"));
+    fr.onload=()=>{
+      const img=new Image();
+      img.onerror=()=>rej(new Error("图片解析失败"));
+      img.onload=()=>{
+        const sc=Math.min(1,maxSide/Math.max(img.width,img.height));
+        const w=Math.max(1,Math.round(img.width*sc)), h=Math.max(1,Math.round(img.height*sc));
+        const cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+        const cx=cv.getContext("2d"); cx.fillStyle="#fff"; cx.fillRect(0,0,w,h); cx.drawImage(img,0,0,w,h);
+        try{ res(cv.toDataURL("image/jpeg",quality)); }catch(e){ rej(e); }
+      };
+      img.src=fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+async function handlePick(input,pvId,txtId,setVal,maxSide){
+  const f=input.files&&input.files[0]; if(!f) return;
+  try{
+    const url=await compress(f,maxSide,0.72);
+    setVal(url);
+    const pv=$(pvId); pv.innerHTML="";
+    const i=document.createElement("img"); i.alt="预览"; i.src=url; pv.appendChild(i);
+    $(txtId).textContent="已选择 · "+(url.length/1024).toFixed(0)+" KB";
+  }catch(e){ toast("图片处理失败：" + e.message); }
+  input.value="";
+}
+function resetPick(pvId,txtId){
+  const pv=$(pvId); pv.innerHTML=""; const s=document.createElement("span"); s.innerHTML=ICO.cam;
+  s.style.color="var(--ink-3)"; pv.appendChild(s); $(txtId).textContent="点击选择照片";
+}
+
+/* SECTION: records form logic */
+function startEdit(id){
+  const r=state.records.find(x=>x.id===id); if(!r) return;
+  editingId=id; formPhoto=r.photo||null;
+  switchTab("records");
+  $("recDate").value=r.date;
+  $("recWeight").value=r.weight!=null?r.weight:"";
+  $("recLength").value=r.length!=null?r.length:"";
+  $("recHeight").value=r.height!=null?r.height:"";
+  $("recNote").value=r.note||"";
+  if(r.photo){
+    const pv=$("recPhotoPv"); pv.innerHTML="";
+    const i=document.createElement("img"); i.alt="预览"; i.src=r.photo; pv.appendChild(i);
+    $("recPhotoTxt").textContent="已选择 · 保留原图";
+  }else resetPick("recPhotoPv","recPhotoTxt");
+  $("recFormTitle").textContent="编辑这条记录";
+  $("recSubmit").textContent="更新记录";
+  $("recCancel").hidden=false;
+  $("recHint").textContent="";
+  $("recDate").focus();
+}
+function cancelEdit(){
+  editingId=null; formPhoto=null;
+  $("recForm").reset(); $("recDate").value=today();
+  $("recFormTitle").textContent="新增一条生长记录";
+  $("recSubmit").textContent="保存记录";
+  $("recCancel").hidden=true; $("recHint").textContent="";
+  resetPick("recPhotoPv","recPhotoTxt");
+}
+$("recForm").addEventListener("submit",(e)=>{
+  e.preventDefault();
+  const w=$("recWeight").value, l=$("recLength").value, h=$("recHeight").value;
+  const rec={
+    id: editingId||uid(),
+    date: $("recDate").value||today(),
+    weight:num(w), length:num(l), height:num(h),
+    note:$("recNote").value.trim().slice(0,300),
+    photo: formPhoto||""
+  };
+  if(rec.weight==null&&rec.length==null&&rec.height==null&&!rec.note&&!rec.photo){
+    $("recHint").textContent="至少填一项数值、备注或照片"; return;
+  }
+  if(editingId){
+    const i=state.records.findIndex(x=>x.id===editingId);
+    if(i>-1) state.records[i]=rec;
+  }else state.records.push(rec);
+  if(!save()) return;
+  const isNew=!editingId;
+  cancelEdit(); renderAll();
+  toast(isNew?"记录已保存":"记录已更新");
+});
+$("recCancel").addEventListener("click",cancelEdit);
+$("recPhoto").addEventListener("change",()=>handlePick($("recPhoto"),"recPhotoPv","recPhotoTxt",(v)=>formPhoto=v,900));
+
+/* SECTION: milestones form */
+$("msForm").addEventListener("submit",(e)=>{
+  e.preventDefault();
+  const m={id:uid(),date:$("msDate").value||today(),type:$("msType").value,
+           title:$("msTitle").value.trim().slice(0,60),note:$("msNote").value.trim().slice(0,300)};
+  if(!m.title){ toast("请填写事件内容"); return; }
+  state.milestones.push(m);
+  if(!save()) return;
+  $("msTitle").value=""; $("msNote").value="";
+  renderAll(); toast("里程碑已添加");
+});
+
+/* SECTION: pet modal */
+function openPet(){
+  $("petName").value=state.pet.name||"";
+  $("petBreed").value=state.pet.breed||"";
+  $("petGender").value=state.pet.gender||"弟弟";
+  $("petBirthday").value=state.pet.birthday||"";
+  avatarPhoto=state.pet.avatar||null;
+  if(state.pet.avatar){
+    const pv=$("avatarPv"); pv.innerHTML="";
+    const i=document.createElement("img"); i.alt="头像预览"; i.src=state.pet.avatar; pv.appendChild(i);
+    $("avatarTxt").textContent="已选择 · 保留原图";
+  }else resetPick("avatarPv","avatarTxt");
+  $("petModal").classList.add("on");
+  setTimeout(()=>$("petName").focus(),60);
+}
+function closePet(){ $("petModal").classList.remove("on"); }
+$("editPetBtn").addEventListener("click",openPet);
+$("petCancel").addEventListener("click",closePet);
+$("petModal").addEventListener("click",(e)=>{ if(e.target===$("petModal")) closePet(); });
+$("petAvatar").addEventListener("change",()=>handlePick($("petAvatar"),"avatarPv","avatarTxt",(v)=>avatarPhoto=v,420));
+$("petForm").addEventListener("submit",(e)=>{
+  e.preventDefault();
+  const name=$("petName").value.trim().slice(0,24);
+  if(!name){ toast("名字不能为空"); return; }
+  state.pet={name,breed:$("petBreed").value.trim().slice(0,30),gender:$("petGender").value,
+             birthday:$("petBirthday").value||"",avatar:avatarPhoto||""};
+  if(!save()) return;
+  closePet(); renderAll(); toast("档案已保存");
+});
+
+/* SECTION: tabs */
+function switchTab(name){
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",String(t.dataset.tab===name)));
+  document.querySelectorAll(".panel").forEach(p=>p.hidden=(p.id!=="panel-"+name));
+  if(name==="chart") requestAnimationFrame(drawChart);
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>switchTab(t.dataset.tab)));
+document.addEventListener("click",(e)=>{
+  const g=e.target.closest("[data-goto]"); if(g) switchTab(g.dataset.goto);
+});
+$("metricSwitch").addEventListener("click",(e)=>{
+  const b=e.target.closest("[data-metric]"); if(!b) return;
+  curMetric=b.dataset.metric;
+  document.querySelectorAll("[data-metric]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+  drawChart();
+});
+$("lbClose").addEventListener("click",()=>$("lightbox").classList.remove("on"));
+$("lightbox").addEventListener("click",(e)=>{ if(e.target===$("lightbox")) $("lightbox").classList.remove("on"); });
+document.addEventListener("keydown",(e)=>{
+  if(e.key!=="Escape") return;
+  $("lightbox").classList.remove("on"); closePet();
+});
+
+/* SECTION: data io */
+$("exportBtn").addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="宠物成长记录-"+today()+".json";
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+  toast("备份已导出，请妥善保存");
+});
+$("importBtn").addEventListener("click",()=>$("importFile").click());
+$("importFile").addEventListener("change",()=>{
+  const f=$("importFile").files&&$("importFile").files[0]; if(!f) return;
+  const fr=new FileReader();
+  fr.onload=()=>{
+    try{
+      const d=JSON.parse(fr.result);
+      if(!d || typeof d!=="object" || !Array.isArray(d.records)) throw new Error("文件格式不正确");
+      if(!confirm("导入将覆盖当前全部数据（现有 "+state.records.length+" 条记录）。继续？")) return;
+      state={pet:Object.assign(blank().pet,d.pet||{}),
+             records:d.records.map(normRec),
+             milestones:Array.isArray(d.milestones)?d.milestones.map(normMs):[]};
+      save(); renderAll(); toast("已导入 "+state.records.length+" 条记录");
+    }catch(err){ toast("导入失败："+err.message); }
+  };
+  fr.onerror=()=>toast("读取文件失败");
+  fr.readAsText(f);
+  $("importFile").value="";
+});
+$("clearBtn").addEventListener("click",()=>{
+  if(!confirm("清空全部档案、记录、里程碑和照片？此操作不可撤销，建议先导出备份。")) return;
+  state=blank(); save(); renderAll(); toast("已清空");
+});
+$("demoBtn").addEventListener("click",()=>{
+  if(state.records.length && !confirm("示例数据会覆盖当前内容，建议先导出备份。继续？")) return;
+  state=demoData(); save(); renderAll(); toast("已载入一套 6 个月的示例数据");
+});
+function storageInfo(){
+  const bytes=new Blob([localStorage.getItem(KEY)||""]).size;
+  $("storageInfo").textContent="当前占用浏览器存储约 "+(bytes/1024).toFixed(0)+" KB。"+
+    "浏览器本地容量通常 5 MB 左右，照片较多时请及时导出备份并从旧记录中删掉不必要的图。";
+}
+
+/* SECTION: demo data */
+function demoData(){
+  const now=new Date();
+  const iso=(offsetDays)=>{ const d=new Date(now.getTime()-offsetDays*86400000);
+    return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
+  const born=iso(190);
+  const growth=[[175,1.05,17,12],[160,1.62,21,15],[145,2.35,26,18],[130,3.1,30,21],
+                [100,4.05,35,24],[70,4.85,39,26],[40,5.4,41,27],[14,5.75,42,27.5],[3,5.9,42.5,28]];
+  return {
+    pet:{name:"奶糖",breed:"柯基（彭布罗克）",gender:"妹妹",birthday:born,avatar:""},
+    records:growth.map(([d,w,l,h],i)=>({
+      id:uid()+i,date:iso(d),weight:w,length:l,height:h,photo:"",
+      note: d===14?"换成成犬粮了，便便有点软，观察一周": d===3?"体检一切正常，医生说体型已经接近成年":""
+    })),
+    milestones:[
+      {id:uid()+"m1",date:iso(150),type:"疫苗",title:"第二联苗（第2针）",note:"宠物医院，含狂犬"},
+      {id:uid()+"m2",date:iso(120),type:"疫苗",title:"第三针 + 狂犬疫苗",note:"下一次加强在一年后"},
+      {id:uid()+"m3",date:iso(96),type:"驱虫",title:"体内驱虫（第2次）",note:""},
+      {id:uid()+"m4",date:iso(78),type:"换牙",title:"开始换牙，乳牙松动",note:"给了磨牙棒"},
+      {id:uid()+"m5",date:iso(52),type:"第一次",title:"第一次独自在家 4 小时没拆家",note:"回家时装得很无辜"},
+      {id:uid()+"m6",date:iso(24),type:"新技能",title:"学会「转圈」",note:"用冻干换来的，成功率 70%"},
+      {id:uid()+"m7",date:iso(3),type:"绝育",title:"完成绝育手术",note:"术后戴圈 10 天"}
+    ]
+  };
+}
+
+/* SECTION: init */
+function renderAll(){
+  renderHero(); renderOverview(); renderRecords(); renderMs(); renderGallery();
+  drawChart(); storageInfo();
+}
+$("recDate").value=today();
+$("msDate").value=today();
+bindChartPointer();
+let rz=null;
+window.addEventListener("resize",()=>{ clearTimeout(rz); rz=setTimeout(drawChart,180); });
+renderAll();
+if(!state.pet.name && !state.records.length){
+  state=demoData(); save(); renderAll();
+}
+</script>
+</body>
+</html>
